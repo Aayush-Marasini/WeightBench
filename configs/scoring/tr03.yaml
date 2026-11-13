@@ -1,0 +1,11 @@
+# The official score is the SPEC §3 formula, with one constant set for all tracks
+# (weightbench/scoring.py V3_*). alpha / beta / lam below only feed the comparison column s_wb_v2;
+# gamma_probe is used for E = N_fwd + gamma_probe * N_probe.
+# TR-03 trap verification. S+ already folds in the decoy's TR-02 collateral and edit cost
+# (tr03_trap_lib.grading), so alpha = 0 and λ = 0 here; only the probe discount applies.
+# Calibrated with `python -m weightbench.calibrate` (targets in its docstring):
+# beta: the full 10-forward budget costs 10%.
+alpha: 0.0
+beta: 0.107
+gamma_probe: 1.0
+lam: [0.0, 0.0, 0.0]

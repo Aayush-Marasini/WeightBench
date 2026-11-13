@@ -1,0 +1,9 @@
+# The official score is the SPEC §3 formula, with one constant set for all tracks
+# (weightbench/scoring.py V3_*). alpha / beta / lam below only feed the comparison column s_wb_v2;
+# gamma_probe is used for E = N_fwd + gamma_probe * N_probe.
+# TR-02 surgical patching. C(ΔW) = λ1·L0 + λ2·rank + λ3·Frobenius, applied as e^{-C}.
+# Frobenius ratio is unbounded, so it gets the smallest weight; L0/rank budgets are hard validity checks.
+alpha: 2.0
+beta: 0.1
+gamma_probe: 1.0
+lam: [1.0, 0.25, 0.1]

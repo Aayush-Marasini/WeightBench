@@ -1,0 +1,9 @@
+# The official score is the SPEC §3 formula, with one constant set for all tracks
+# (weightbench/scoring.py V3_*). alpha / beta / lam below only feed the comparison column s_wb_v2;
+# gamma_probe is used for E = N_fwd + gamma_probe * N_probe.
+# TR-05 hardware-aware WSP. Edit budgets are validity checks (2:4 mask; zeroing-only + soundness for dead-
+# circuit pruning), so λ = 0. Quality loss is the task metric itself (no separate collateral), so alpha = 0.
+alpha: 0.0
+beta: 0.1
+gamma_probe: 1.0
+lam: [0.0, 0.0, 0.0]

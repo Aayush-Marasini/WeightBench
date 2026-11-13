@@ -1,0 +1,4 @@
+# Shell scripts run on Linux (WSL, Linux servers); keep them LF even on Windows checkouts.
+*.sh text eol=lf
+# Release manifests have recorded byte hashes; keep them stable across Windows/Linux checkouts.
+manifests/*.json text eol=lf

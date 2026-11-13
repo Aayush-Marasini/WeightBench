@@ -1,0 +1,9 @@
+# Core harness (CPU). Install with: pip install -r requirements.txt && pip install -e .
+# Pinned versions for reproducible numbers: add `-c constraints.txt`.
+numpy>=1.26
+scipy>=1.11
+torch>=2.4
+pyyaml>=6
+minatar>=1.0.15
+# Language-model tasks (TR-02 SYC/LOOP, TR-03, TR-05 SPARSE/OUTLIER): pip install -e '.[lm]'
+# Tests: pip install -e '.[dev]'

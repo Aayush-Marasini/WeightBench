@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""rollout.py: run ONE metered episode of (base policy + your ΔW) on the evaluator.
+
+usage:
+  python rollout.py <delta.npz | none> [--start failure | '<json state>'] [--obs-idx i,j,...] [--save FILE]
+
+  delta.npz : {param_name: ΔW array} with the same shapes as policy.npz (zeros allowed), or `none`
+  --start   : `failure` (default) = the start state of failure_trajectory.npz, or a JSON start
+              (see TASK.md for the format and the allowed range)
+  --obs-idx : (Kinetix task only) up to 32 extra observation indices to trace
+  --save    : where to write the full trajectory JSON (default rollouts/rollout_<n>.json)
+
+Every call costs 1 unit of the `forward` budget (check with `python wb.py budget`).
+"""
+import json
+import os
+import sys
+
+import numpy as np
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import wb  # noqa: E402
+
+
+def encode(path):
+    if path in ("none", "-", ""):
+        return {}
+    out = {}
+    with np.load(path) as z:
+        for k in z.files:
+            d = np.asarray(z[k])
+            idx = np.flatnonzero(d)
+            if idx.size:
+                out[k] = {"idx": idx.tolist(), "val": d.ravel()[idx].astype(float).tolist()}
+    return out
+
+
+def main(a):
+    if not a or a[0] in ("-h", "--help"):
+        print(__doc__)
+        return 1
+    payload = {"delta": encode(a[0]), "start": "failure"}
+    save = None
+    i = 1
+    while i < len(a):
+        if a[i] == "--start":
+            payload["start"] = a[i + 1] if a[i + 1] == "failure" else json.loads(a[i + 1])
+        elif a[i] == "--obs-idx":
+            payload["obs_idx"] = [int(x) for x in a[i + 1].split(",") if x]
+        elif a[i] == "--save":
+            save = a[i + 1]
+        else:
+            print(f"unknown argument {a[i]}\n{__doc__}")
+            return 1
+        i += 2
+    out = wb.call("POST", "/probe", {"kind": "rollout", "payload": payload})
+    res = out.get("result", {})
+    if save is None:
+        os.makedirs("rollouts", exist_ok=True)
+        save = os.path.join("rollouts", f"rollout_{out.get('used', 'x')}.json")
+    with open(save, "w") as f:
+        json.dump(out, f)
+    if "error" in out or "error" in res:
+        print(json.dumps({k: v for k, v in out.items() if k != "result"} | {"error": res.get("error", out.get("error"))}))
+        return 2
+    summary = {k: res[k] for k in ("success", "fell_in_lava", "return", "t_end", "delta_nonzeros") if k in res}
+    print(json.dumps(summary | {"used": out.get("used"), "cap": out.get("cap"), "saved": save}))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

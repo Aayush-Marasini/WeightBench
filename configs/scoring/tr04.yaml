@@ -1,0 +1,13 @@
+# The official score is the SPEC §3 formula, with one constant set for all tracks
+# (weightbench/scoring.py V3_*). alpha / beta / lam below only feed the comparison column s_wb_v2;
+# gamma_probe is used for E = N_fwd + gamma_probe * N_probe.
+# TR-04 from-zero synthesis (SPEC §3): only the Frobenius term counts, normalised by a
+# default-initialised network (Task.frobenius_reference). MinAtar and Go have no collateral benchmark
+# (D_col = 0); TR04-GRAFT-001 penalises loss of the host's original task.
+# Calibrated with `python -m weightbench.calibrate` (targets in its docstring):
+# alpha: a 0.10 collateral drop costs 20%; lam3: the median reference loses 10% to edit cost;
+# beta: the full 50-rollout Go budget costs 10%.
+alpha: 2.23
+beta: 0.065
+gamma_probe: 1.0
+lam: [0.0, 0.0, 0.1054]

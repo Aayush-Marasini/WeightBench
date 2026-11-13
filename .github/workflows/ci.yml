@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  cpu-tests:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, windows-latest]   # pinned: ubuntu-latest moves to Ubuntu 26 (sandbox behaviour may change)
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      # Bubblewrap enables the Linux sandbox tests.
+      - name: Install bubblewrap
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+
+      - name: Create venv and install (Linux CPU)
+        if: runner.os == 'Linux'
+        run: |
+          uv venv --python 3.12
+          uv pip install -e ".[lm,dev,tr01]" --torch-backend cpu -c constraints.txt
+
+      - name: Create venv and install (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          uv venv --python 3.12
+          uv pip install -e ".[lm,dev,tr01]" -c constraints.txt
+
+      - name: Run CPU tests
+        env:
+          OPENBLAS_NUM_THREADS: 1
+        run: uv run --no-sync pytest -q -m "not gpu"
+
+  clean-install:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: source checkout
+      - uses: astral-sh/setup-uv@v7
+      - name: Fresh CPU quickstart and verified resume
+        working-directory: source checkout
+        env:
+          OPENBLAS_NUM_THREADS: 1
+        run: |
+          bash scripts/quickstart.sh
+          bash scripts/quickstart.sh
+          .venv/bin/weightbench doctor   # exits 1 if any required package fails to import
+          .venv/bin/weightbench list
+
+      # The quickstart report must land in gitignored results_local/, never in tracked files.
+      - name: Quickstart must not dirty tracked files
+        working-directory: source checkout
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=no)"
+
+  # End-to-end proof on a fresh machine, no login and no model: installs like a new user (README), then runs two
+  # scripted agents (one honest, one cheating) through the real runner and the real bubblewrap sandbox on the toy task
+  # TR05-DEAD-001, plus baseline and reference, verifies every ledger and asserts the outcomes. The same one command
+  # works locally: bash scripts/ci_sandbox_e2e.sh
+  sandbox-e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+      - name: Install system prerequisites (bubblewrap, as in the README)
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+      # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor, so bubblewrap fails with
+      # "setting up uid map: Permission denied". Lifting the restriction on this throwaway runner is the documented
+      # workaround; the cpu-tests job does not need it because no test starts a real sandbox.
+      - name: Allow unprivileged user namespaces for bubblewrap
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Install as documented (harness venv and agent venv)
+        env:
+          OPENBLAS_NUM_THREADS: 1
+        run: bash scripts/install.sh --agent
+      - name: Sandbox end-to-end (scripted agents, floors, ledgers, leaderboard)
+        env:
+          OPENBLAS_NUM_THREADS: 1
+        run: bash scripts/ci_sandbox_e2e.sh
