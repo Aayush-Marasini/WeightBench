@@ -1,5 +1,7 @@
 # WeightBench
 
+[Read the preprint (PDF)](docs/weightbench_preprint.pdf)
+
 **Can an AI agent read, fix and write neural-network weights directly, the way an expert reads code?**
 
 WeightBench gives an agent the raw weights of a model and a task (find a backdoor, repair a behaviour, write a
