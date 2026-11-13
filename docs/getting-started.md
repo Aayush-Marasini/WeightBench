@@ -19,7 +19,7 @@ To benchmark an agent once the install works, continue with [running-agents.md](
 
 1. Open PowerShell as administrator and run `wsl --install -d Ubuntu`, then restart.
 2. Open **Ubuntu** from the Start menu and do every remaining step inside it.
-3. Clone into your Linux home (`~/weightbench`), not under `/mnt/c/...`. Files on the Windows drive are slow to
+3. Clone into your Linux home (`~/weightbench-oss`), not under `/mnt/c/...`. Files on the Windows drive are slow to
    access from Linux, and a virtual environment created by Windows Python does not work inside WSL.
 4. Follow the Ubuntu steps below.
 
@@ -32,7 +32,7 @@ inside Ubuntu is simpler.
 ```bash
 sudo apt update && sudo apt install -y git curl bubblewrap
 curl -LsSf https://astral.sh/uv/install.sh | sh        # skip if you have uv
-git clone https://github.com/OWNER/weightbench && cd weightbench
+git clone https://github.com/Aayush-Marasini/weightbench-oss && cd weightbench-oss
 bash scripts/install.sh                                # core install into ./.venv, then `weightbench doctor`
 source .venv/bin/activate
 ```
@@ -53,7 +53,7 @@ On Fedora, install bubblewrap with `sudo dnf install bubblewrap`.
 ```bash
 xcode-select --install                                 # git
 curl -LsSf https://astral.sh/uv/install.sh | sh
-git clone https://github.com/OWNER/weightbench && cd weightbench
+git clone https://github.com/Aayush-Marasini/weightbench-oss && cd weightbench-oss
 bash scripts/install.sh
 source .venv/bin/activate
 ```

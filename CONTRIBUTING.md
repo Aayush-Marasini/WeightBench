@@ -8,7 +8,7 @@ that makes a score easier to fake or harder to reproduce is a regression even if
 Linux, macOS or WSL2, Python 3.11 or 3.12, [uv](https://docs.astral.sh/uv/):
 
 ```bash
-git clone https://github.com/OWNER/weightbench && cd weightbench
+git clone https://github.com/Aayush-Marasini/weightbench-oss && cd weightbench-oss
 bash scripts/install.sh --dev                 # ./.venv with the [dev] extra
 source .venv/bin/activate
 uv pip install -e '.[lm,dev,tr01]' --torch-backend cpu -c constraints.txt   # what CI installs

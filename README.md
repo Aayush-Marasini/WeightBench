@@ -9,17 +9,20 @@ ledger, so it can't be faked. 42 tasks in 5 tracks, all generated from a seed.
 
 ## Leaderboard (v0.1, preliminary)
 
-| # | Agent | READ | FIX | META | WRITE | SYSTEMS | **Score** |
+| Agent | READ | FIX | META | WRITE | SYSTEMS | **Score (42 tasks)** | Score (38 tasks) |
 |---|---|---|---|---|---|---|---|
-| 1 | GPT-6.1-sol † | 0.928 | 0.642 | 0.303 | 0.863 | 0.879 | **0.723** |
-| 2 | Claude Fable 5.1 † | 1.000 | 0.492 | – | 0.746 | 0.228 | **0.616** |
-| 3 | Claude Opus 5.5 | 0.744 | 0.456 | 0.492 | 0.829 | 0.207 | **0.546** |
-| 4 | Claude Sonnet 5.5 | 0.656 | 0.451 | 0.500 | 0.569 | 0.225 | **0.480** |
-| 5 | Claude Haiku 5.5 | 0.671 | 0.355 | 0.491 | 0.369 | 0.177 | **0.413** |
-| 6 | DeepSeek v4-flash | 0.470 | 0.365 | 0.226 | 0.000 | 0.238 | **0.260** |
+| GPT-6.1-sol † | 0.928 | 0.571 † | 0.260 | 0.863 | 0.220 | – | **0.568** |
+| Claude Opus 5.5 | 0.744 | 0.404 | 0.492 | 0.829 | 0.207 | **0.535** | 0.546 |
+| Claude Sonnet 5.5 | 0.656 | 0.381 | 0.500 | 0.569 | 0.225 | **0.466** | 0.491 |
+| Claude Haiku 5.5 | 0.671 | 0.300 | 0.491 | 0.369 | 0.177 | **0.402** | 0.428 |
+| DeepSeek v4-flash | 0.470 | 0.187 | 0.181 | 0.000 | 0.238 | **0.215** | 0.232 |
 
-Score = mean of the five track means of S_WB (0 to 1), seed 0. Quarantined runs count as 0.
-† Run in progress: not all tasks are scored yet.
+Score = mean of the five track means of S_WB (0 to 1), seed 0. Claude models ran two samples per task, DeepSeek and
+GPT-6.1-sol one. Quarantined runs and runs that ended without a valid submission count as 0; no quarantined run has
+been reviewed yet, so every score is a lower bound. The 38-task score leaves out the four TR-02 reasoning-loop tasks.
+† GPT-6.1-sol was not run on the reasoning-loop tasks (its FIX mean covers 9 of 13 tasks), and 10 of its 38 runs used
+the Codex CLI instead of Claude Code. Claude Fable 5.1 is being evaluated. How these numbers were produced, and how
+to rerun them: [docs/reproducing-the-paper.md](docs/reproducing-the-paper.md).
 
 ## Install
 
@@ -32,7 +35,7 @@ Linux, macOS, or Windows through WSL2, with Python 3.11 or 3.12 and [uv](https:/
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh     # skip if you have uv
-git clone https://github.com/OWNER/weightbench && cd weightbench
+git clone https://github.com/Aayush-Marasini/weightbench-oss && cd weightbench-oss
 bash scripts/quickstart.sh                          # install + score one demo task, no account needed
 source .venv/bin/activate
 ```
@@ -107,6 +110,7 @@ Most tasks run on a CPU laptop. The exceptions:
   `weightbench-leaderboard`, `weightbench-verify`, manifests, calibration, access studies
 - [Specification](docs/SPEC.md): harness enforcement, tracks, scoring, tiers, knobs and integrity protocols
 - [Automated quarantine review](docs/AUTO_REVIEW.md)
+- [Reproducing the paper's agent study](docs/reproducing-the-paper.md)
 - [Adding a task](docs/adding-a-task.md)
 - [Contributing](CONTRIBUTING.md) and [security policy](SECURITY.md)
 

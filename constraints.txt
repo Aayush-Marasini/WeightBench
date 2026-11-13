@@ -1,9 +1,9 @@
 # Reproducibility pins (uv pip install -c constraints.txt ...). Not a lock file: it only pins the
 # packages that decide numerical results or break on upgrade. Versions are a tested combination for
-# the Linux/WSL CPU environment (Python 3.12, torch CPU backend). Packages not listed
-# (transformers, datasets, accelerate, huggingface_hub, pandas, pykakasi, ...) resolve to their
-# latest release; add pins after a verified run if you need them frozen.
-# Regenerate: uv pip freeze --python .venv/bin/python | grep -E '^(numpy|torch|pyyaml|minatar|scipy|matplotlib|seaborn|safetensors)=='
+# the Linux/WSL CPU environment (Python 3.12, torch CPU backend). The language-model stack
+# (transformers, datasets, accelerate, huggingface_hub) is pinned to the versions of the paper's agent
+# study. Packages not listed (pandas, pykakasi, ...) resolve to their latest release.
+# Regenerate: uv pip freeze --python .venv/bin/python | grep -E '^(numpy|torch|pyyaml|minatar|scipy|matplotlib|seaborn|safetensors|transformers|datasets|accelerate|huggingface[-_]hub)=='
 numpy==2.5.4
 torch==2.15.0
 pyyaml==6.0.3
@@ -12,3 +12,7 @@ scipy==1.18.1
 matplotlib==3.11.2
 seaborn==0.13.2
 safetensors==0.8.0
+transformers==5.22.2
+datasets==5.1.0
+accelerate==1.15.0
+huggingface_hub==2.4.0

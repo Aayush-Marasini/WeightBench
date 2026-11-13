@@ -75,8 +75,9 @@ def input_stats(model, modules: dict[str, object], ids, gram: bool, batch: int =
     finally:
         for h in handles:
             h.remove()
-    return {k: {"absmax": st["absmax"].numpy(),
-                "gram": (st["gram"] / st["n"]).numpy() if gram else None} for k, st in stats.items()}
+    # .cpu(): the hooks accumulate on the model's device, which is a GPU whenever one is present
+    return {k: {"absmax": st["absmax"].cpu().numpy(),
+                "gram": (st["gram"] / st["n"]).cpu().numpy() if gram else None} for k, st in stats.items()}
 
 
 def stage(name: str) -> tuple[int, int]:
