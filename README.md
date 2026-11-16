@@ -1,6 +1,6 @@
 # WeightBench
 
-[Read the preprint (PDF)](docs/weightbench_preprint.pdf)
+[Read the preprint (arXiv:2611.18553)](https://arxiv.org/pdf/2611.18553)
 
 **Can an AI agent read, fix and write neural-network weights directly, the way an expert reads code?**
 
@@ -123,9 +123,14 @@ MIT. See [LICENSE](LICENSE).
 ## Citation
 
 ```bibtex
-@misc{weightbench2026,
-  title  = {WeightBench},
-  author = {WeightBench contributors},
-  year   = {2026}
+@misc{marasini2026weightbench,
+  title         = {WeightBench: Evaluating Language Models as Weight-Space Programmers},
+  author        = {Marasini, Aayush and Khadka, Barsat and Rahimi, Nick},
+  year          = {2026},
+  eprint        = {2611.18553},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  doi           = {10.48550/arXiv.2611.18553},
+  url           = {https://arxiv.org/abs/2611.18553}
 }
 ```
