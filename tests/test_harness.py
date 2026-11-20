@@ -656,6 +656,25 @@ def test_transcript_forward_pass_suspect_vs_static_analysis(tmp_path):
     assert A.transcript_flags(write_transcript(tmp_path / "b.jsonl", [{"content": static}])) == set()
 
 
+BOUNDS = "up = np.maximum(W, 0) @ u + np.minimum(W, 0) @ l + b"          # interval-bound products: static analysis
+FORWARD = "h = np.maximum(x @ W1.T + b1, 0)\nlogits = h @ W2.T"
+
+
+@pytest.mark.parametrize("prose", [
+    "I will bound every pre-activation and prune the relu units that can never fire.",
+    "TASK.md gives the network as\n    h1 = relu(W1 @ h0 + b1)\n    out = W2 @ h1 + b2\nI will use interval bounds.",
+])
+def test_prose_mentioning_relu_does_not_make_static_analysis_a_forward_pass(tmp_path, prose):
+    t = write_transcript(tmp_path / "t.jsonl", [{"command": BOUNDS + "\nlo = W @ l + W @ u"}], text=prose)
+    assert A.transcript_flags(t) == set()
+
+
+def test_forward_pass_in_a_tool_call_is_still_flagged_next_to_prose(tmp_path):
+    for tool_input in ({"content": FORWARD}, {"command": "python3 - <<'EOF'\n" + FORWARD + "\nEOF"}):
+        t = write_transcript(tmp_path / "t.jsonl", [tool_input], text="Honest analysis of the relu units.")
+        assert "forward_pass_suspect" in A.transcript_flags(t)
+
+
 def test_user_messages_are_not_audited(tmp_path):
     assert A.transcript_flags(write_transcript(tmp_path / "t.jsonl", [{"command": "ls"}])) == set()
 
