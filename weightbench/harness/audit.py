@@ -192,15 +192,17 @@ def _json_records(path: Path, malformed: list[str], *, require_records: bool = F
 
 
 def _agent_texts(transcript: Path, transcript_format: str = "claude-stream-json",
-                 malformed: list[str] | None = None) -> list[str]:
+                 malformed: list[str] | None = None, tool_calls_only: bool = False) -> list[str]:
     """What the agent itself produced: assistant text and every string in its tool-call inputs
     (shell commands, file contents written), one string per message.
 
     Other agents' transcripts (``transcript_format="text"``: their stdout, e.g. Codex ``--json`` events) cannot be
     split into agent vs. tool output reliably, so every line is audited. That is stricter (tool output that
-    mentions a rule can raise a flag); a flagged run goes to human review, it is not silently dropped."""
+    mentions a rule can raise a flag); a flagged run goes to human review, it is not silently dropped.
+
+    ``tool_calls_only`` drops the assistant's prose (claude and codex formats), for rules that read code."""
     if transcript_format == "codex-json":
-        return _codex_agent_texts(transcript, malformed)
+        return _codex_agent_texts(transcript, malformed, tool_calls_only)
     if transcript_format != "claude-stream-json":
         return [line for line in transcript.read_text(encoding="utf-8", errors="replace").splitlines() if line.strip()]
     texts = []
@@ -225,6 +227,8 @@ def _agent_texts(transcript: Path, transcript_format: str = "claude-stream-json"
                     malformed.append(f"line {number}: content block")
                 continue
             if item.get("type") == "text":
+                if tool_calls_only:
+                    continue
                 if isinstance(item.get("text"), str):
                     parts.append(item["text"])
                 elif len(malformed) < 50:
@@ -242,7 +246,8 @@ CODEX_AGENT_FIELDS = {"agent_message": ("text",), "command_execution": ("command
                       "reasoning": ("text",)}
 
 
-def _codex_agent_texts(transcript: Path, malformed: list[str] | None = None) -> list[str]:
+def _codex_agent_texts(transcript: Path, malformed: list[str] | None = None,
+                       tool_calls_only: bool = False) -> list[str]:
     """Codex `exec --json` transcript: what the agent wrote (messages, commands, file edits), not command output.
     Auditing output too would flag the task's own text, e.g. TASK.md's architecture description."""
     texts = []
@@ -271,6 +276,8 @@ def _codex_agent_texts(transcript: Path, malformed: list[str] | None = None) -> 
             if len(malformed) < 50:
                 malformed.append(f"line {number}: item fields")
         parts = [s for f in fields for s in _strings(item.get(f))]
+        if tool_calls_only and item["type"] in ("agent_message", "reasoning"):
+            parts = []
         if parts:
             texts.append("\n".join(parts))
     return texts
@@ -286,11 +293,12 @@ def transcript_flags(transcript: Path, repo_root: Path | None = None,
         for rx, name in TEXT_RULES + INFO_RULES:
             if rx.search(code):
                 flags.add(name)
+        if repo_root is not None and str(repo_root) in code:
+            flags.add("repo_path")
+    for code in _agent_texts(transcript, transcript_format, tool_calls_only=True):   # prose is not code
         code_only = strip_python_noncode(code)   # ignore matmul/activation tokens in comments and string literals
         if len(MATMUL.findall(code_only)) >= 2 and text_nonlinearity(code_only):
             flags.add("forward_pass_suspect")   # hand-written layer stack: weight matmuls + nonlinearity
-        if repo_root is not None and str(repo_root) in code:
-            flags.add("repo_path")
     if malformed:
         flags.add("transcript_malformed")
     return flags
