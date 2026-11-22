@@ -130,6 +130,20 @@ Extras combine: `uv pip install -e '.[lm,dev,tr01]' --torch-backend cpu -c const
 harness environment active. On a machine with a CUDA GPU, drop `--torch-backend cpu` (or pick the matching backend)
 to get a GPU build of PyTorch; the long-generation tasks (TR02-LOOP, TR03-PAIR-003/005) detect CUDA automatically.
 
+### TR01-ESC corpora (Project Gutenberg)
+
+Building TR01-ESC-001..003 downloads 27 public-domain Project Gutenberg texts (12 English, 15 German) once, into
+`artifacts/_shared_tr01_chartf/raw/<language>/pg<id>.txt`. Every file is checked against a sha256 pinned in
+`weightbench/tracks/tr01_circuits_lib/data.py` (`GUTENBERG_SHA256`) before it is used or cached, so two builds of
+the same seed train on the same text. A file that does not match fails the build with the expected and actual hash;
+a wrong file is never cached.
+
+- **gutenberg.org down.** The build tries `www.gutenberg.org` and then the Project Gutenberg mirror
+  `gutenberg.pglaf.org`, which serves identical bytes. The manifest records which host each file came from.
+- **No network.** Put the texts at the paths above (any source works if the hash matches) and build as usual.
+  Delete a file that fails the hash check; the build will not overwrite it for you.
+- The Japanese (romaji) corpus is downloaded from a Hugging Face dataset at a pinned revision.
+
 ### Hugging Face models
 
 Tasks built on Gemma-3-270M-it (TR02-SYC, TR03-PAIR) and Mistral-7B-v0.3 (TR03-PAIR-001) download gated
